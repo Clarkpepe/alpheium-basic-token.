@@ -1,0 +1,25 @@
+Contract SimpleToken(symbol: ByteVec, name: ByteVec, decimals: U256, mut balance: U256) {
+  /// Event for transfers
+  event Transfer(from: Address, to: Address, amount: U256)
+
+  /// Get current balance
+  pub fn getBalance() -> U256 {
+    balance
+  }
+
+  /// Mint tokens: only the contract itself can mint
+  @using(preapprovedAssets = true, assetsInContract = true, updateFields = true, checkExternalCaller = false)
+  pub fn mint(amount: U256) -> () {
+    balance = balance + amount
+    emit Transfer(selfAddress!(), selfAddress!(), amount)
+  }
+
+  /// Transfer tokens to another address
+  @using(preapprovedAssets = true, assetsInContract = true, updateFields = true, checkExternalCaller = false)
+  pub fn transfer(to: Address, amount: U256) -> () {
+    assert!(amount <= balance, "Insufficient balance")
+    transferToken!(selfAddress!(), to, getTokenId(), amount)
+    balance = balance - amount
+    emit Transfer(selfAddress!(), to, amount)
+  }
+}
